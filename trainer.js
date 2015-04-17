@@ -26,14 +26,15 @@ var sum = function(left, right) {
   return suitOfSum((left.value + right.value) % suits.length);
 };
 
-var unrevealed = Symbol("unrevealed")
+var first    = Symbol("first")
+var second   = Symbol("second")
 var revealed = Symbol("revealed")
 
 var getStartingState = function() {
   var left = getSuit();
   var right = getSuit();
   return {
-    state: unrevealed,
+    state: first,
     left,
     right,
     sum: sum(left, right)
@@ -41,34 +42,39 @@ var getStartingState = function() {
 };
 
 // Take a state and produce the next one.
-// Unrevealed states go to the corresponding revealed state,
-// revealed states go to a fresh unrevealed state.
 var advance = function(state) {
-  if (state.state === revealed) {
-    return getStartingState();
-  } else {
+  if (state.state === first) {
+    return {
+      state: second,
+      left: state.left,
+      right: state.right,
+      sum: state.sum
+    };
+  } else if (state.state === second) {
     return {
       state: revealed,
       left: state.left,
       right: state.right,
       sum: state.sum
     };
+  } else if (state.state === revealed) {
+    return getStartingState();
   }
 };
 
-var firstDiv  = document.querySelector("#first");
-var secondDiv = document.querySelector("#second");
-var sumDiv    = document.querySelector("#sum");
+var elem = document.querySelector("#elem");
 
 var render = function(state) {
-  if (state.state === unrevealed) {
-    sumDiv.style.visibility = "hidden";
+  // multimethods are a pretty good idea
+  if (state.state === first) {
+    elem.innerHTML = state.left.display;
+  } else if (state.state === second) {
+    elem.innerHTML = "+ " + state.right.display;
   } else if (state.state === revealed) {
-    sumDiv.style.visibility = "";
-  };
-  firstDiv.innerHTML = state.left.display;
-  secondDiv.innerHTML = state.right.display;
-  sumDiv.innerHTML = state.sum.display;
+    elem.innerHTML = "= " + state.sum.display;
+  } else {
+    throw "Can't render " + state.state;
+  }
 };
 
 var currentState = getStartingState();
